@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Новый вопрос{% endblock %}
+
+{% block extra_head %} 
+  <link rel="stylesheet" href="{% static 'css/forms.css' %}"> 
+{% endblock %}
+
+{% block content %}
+  <div class="div-container">
+    <form class="form">
+      <div class="form-grid">
+        <label for="title">Title</label>
+        <input id="title" name="title" type="text">
+
+        <label for="text">Text</label>
+        <textarea id="text" name="text" rows="6"></textarea>
+
+        <label for="tags">Tags</label>
+        <input id="tags" name="tags" type="text">
+      </div>
+
+      <div class="form-actions">
+        <button type="submit">ASK!</button>
+      </div>
+    </form>
+
+
+
+  </div>
+
+{% endblock %}

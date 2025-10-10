@@ -1,0 +1,9 @@
+.form-grid{
+  display: grid;
+  grid-template-columns: 160px 1fr;
+  gap: 12px 16px;
+  align-items: start;
+}
+.form-actions{
+  margin-top: 12px;
+}

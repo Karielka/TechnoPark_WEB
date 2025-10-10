@@ -1,0 +1,46 @@
+.div-container {
+  display: flex;
+  gap: 16px;
+}
+.div-column { 
+  flex: 1 1 0; 
+  gap: 1rem;
+}
+.div-column--main  { flex: 2 1 0; }
+.div-column--aside { flex: 1 1 0; }
+.div-row {
+  display: flex;
+  gap: 8px;
+}
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  list-style: none;
+  padding: 0;
+  margin: 16px 0;
+}
+.question-card {
+  display: flex;
+  flex-direction: row;
+  min-height: 100px;
+  border: 1px solid;
+  border-radius: 10px;
+  margin: 0.5rem;
+  padding: 0.5rem;
+}
+.answer-card {
+  display: flex;
+  flex-direction: row;
+  min-height: 100px;
+  border: 1px solid;
+  border-radius: 10px;
+  margin: 0.5rem;
+  padding: 0.5rem;
+}
+.pagination-btn {
+  border: 1px solid;
+  margin-left: 1rem;
+  width: 2rem;
+  height: 2rem;
+}
