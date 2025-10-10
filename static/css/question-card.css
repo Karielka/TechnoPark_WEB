@@ -1,0 +1,9 @@
+/* .question-card .div-column--aside {
+  background-color: aqua;
+} */
+.question-avatar{ 
+  width:100px; 
+  height:100px; 
+  border-radius:50%; 
+  object-fit:cover; 
+}

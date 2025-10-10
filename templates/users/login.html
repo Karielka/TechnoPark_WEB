@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Вход{% endblock %}
+
+{% block extra_head %} 
+  <link rel="stylesheet" href="{% static 'css/forms.css' %}"> 
+{% endblock %}
+
+{% block content %}
+  <div class="div-container">
+    <div class="flex-table">
+      <label> 
+        Логин
+      </label>
+      <input type="text"/>
+      <label> 
+        Пароль
+      </label>
+      <input type="password"/>
+      <p></p>
+      <button>Войти</button>
+      <p></p>
+      <a>Зарегистрироваться</a>
+    </div>
+
+  </div>
+
+{% endblock %}

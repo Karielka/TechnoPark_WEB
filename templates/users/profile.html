@@ -1,0 +1,39 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Профиль{% endblock %}
+
+{% block extra_head %} 
+  <link rel="stylesheet" href="{% static 'css/forms.css' %}"> 
+{% endblock %}
+
+{% block content %}
+  <div class="div-container">
+    <div class="flex-table">
+      <label> 
+        Логин
+      </label>
+      <input type="text"/>
+      <label> 
+        Почта
+      </label>
+      <input type="text"/>
+      <label> 
+        Имя
+      </label>
+      <input type="text"/>
+      <label> 
+        Фото
+      </label>
+      <div>
+        <img src="/static/img/avatar.png" height="160px"/>
+        <input type="file">
+        
+      </div>
+      <p></p>
+      <button class="btn-success">Сохранить</button>
+    </div>
+
+  </div>
+
+{% endblock %}

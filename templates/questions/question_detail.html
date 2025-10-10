@@ -3,75 +3,56 @@
 {% block title %}Страница "вопросы"{% endblock %}
 
 {% block content %}
-  <p> Новые вопросы <a href="/">Горячие вопросы</a></p>
 
   <div class="div-column">
     
 
     <div class="question-card">
       <div class="div-column div-column--aside">
-        <p>Фото</p>
-        <p>Рейтинг</p>
+        <img class="question-avatar" src="/static/img/avatar.png" alt="" />
+        <input class="rating-input" type="number" value="5"></input>
       </div>
       <div class="div-column div-column--main">
-        <p>Тема вопроса</p>
+        <p class="info-text">Тема вопроса</p>
         <p>Текст вопроса</p>
         <p>
-          <a href="/">Ответы(3)</a> 
           Тэги: 
           <a href="/">WEB</a>
           <a href="/">Технопарк</a>
         </p>
       </div>
-      
     </div>
 
     <hr />
 
     <div class="answer-card">
       <div class="div-column div-column--aside">
-        <p>Фото</p>
-        <p>Рейтинг</p>
+        <img class="question-avatar" src="/static/img/avatar.png" alt="" />
+        <input class="rating-input" type="number" value="5"></input>
       </div>
       <div class="div-column div-column--main">
         <p>Ответ</p>
         <p>
           <input type="checkbox" />
-          <span>Correct</span>
+          <span>Правильно</span>
 
         </p>
       </div>
       
     </div>
 
-    <div class="answer-card">
-      <div class="div-column div-column--aside">
-        <p>Фото</p>
-        <p>Рейтинг</p>
-      </div>
-      <div class="div-column div-column--main">
-        <p>Ответ</p>
-        <p>
-          <input type="checkbox" />
-          <span>Correct</span>
-
-        </p>
-      </div>
-      
-    </div>
 
     <hr />
 
-    <div class="div-column">
-      <textarea 
-        class="user-answer"
-        placeholder="Введите Ваш ответ"
-      >
-
-      </textarea>
-      <button>
-        answer
-      </button>
+    <div class="answer-card user-answer-card">
+      <div class="div-column--main">
+        <textarea 
+          class="user-answer"
+          placeholder="Введите Ваш ответ"
+        >
+        </textarea>
+        <button type="submit"> Ответ </button>
+      </div>
     </div>
   </div>
 

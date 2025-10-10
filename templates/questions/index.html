@@ -3,15 +3,15 @@
 {% block title %}Страница "вопросы"{% endblock %}
 
 {% block content %}
-  <p> Новые вопросы <a href="/">Горячие вопросы</a></p>
+  <p class="info-header"> Новые вопросы <a class="info-text" href="/">Горячие вопросы</a></p>
 
   <div class="div-column">
     
 
     <div class="question-card">
       <div class="div-column div-column--aside">
-        <p>Фото</p>
-        <p>Рейтинг</p>
+        <img class="question-avatar" src="/static/img/avatar.png" alt="" />
+        <input class="rating-input" type="number" value="5"></input>
       </div>
       <div class="div-column div-column--main">
         <p>Тема вопроса</p>
@@ -23,13 +23,30 @@
           <a href="/">Технопарк</a>
         </p>
       </div>
-      
+    </div>
+
+
+    <div class="question-card">
+      <div class="div-column div-column--aside">
+        <img class="question-avatar" src="/static/img/avatar.png" alt="" />
+        <input class="rating-input" type="number" value="5"></input>
+      </div>
+      <div class="div-column div-column--main">
+        <p>Тема вопроса</p>
+        <p>Текст вопроса</p>
+        <p>
+          <a href="/">Ответы(3)</a> 
+          Тэги: 
+          <a href="/">WEB</a>
+          <a href="/">Технопарк</a>
+        </p>
+      </div>
     </div>
 
     <div class="question-card">
       <div class="div-column div-column--aside">
-        <p>Фото</p>
-        <p>Рейтинг</p>
+        <img class="question-avatar" src="/static/img/avatar.png" alt="" />
+        <input class="rating-input" type="number" value="5"></input>
       </div>
       <div class="div-column div-column--main">
         <p>Тема вопроса</p>
@@ -41,19 +58,19 @@
           <a href="/">Технопарк</a>
         </p>
       </div>
-      
+    </div>
+
+    <div>
+      <ul class="div-row">
+        <span class="pagination-btn"><a href="?page=1">1</a></span>
+        <span class="pagination-btn"><a href="?page=2">2</a></span>
+
+        <span class="pagination-btn"><a href="?page=2">...</a></span>
+        <span class="pagination-btn"><a href="?page=2">53</a></span>
+      </ul>
     </div>
 
   </div>
 
-  <div>
-    <ul class="div-row">
-      <span class="pagination-btn"><a href="?page=1">1</a></span>
-      <span class="pagination-btn"><a href="?page=2">2</a></span>
-
-      <span class="pagination-btn"><a href="?page=2">...</a></span>
-      <span class="pagination-btn"><a href="?page=2">53</a></span>
-    </ul>
-  </div>
 
 {% endblock %}
