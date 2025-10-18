@@ -21,3 +21,15 @@ class RegisterView(TemplateView):
 
 class ProfileView(TemplateView):
     template_name = "users/profile.html"
+
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        user = {"login": "blood_clown", "email" : "karielka@yandex.ru", "fio": "Мальков Олег"}
+        ctx.update({
+            "user": user,
+        })
+        return ctx
+
+
+class LogoutView(TemplateView):
+    pass
