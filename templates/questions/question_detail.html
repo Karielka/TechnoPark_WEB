@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}Страница "вопросы"{% endblock %}
+{% block title %} Страница вопроса {% endblock %}
 
 {% block content %}
 
@@ -9,37 +9,40 @@
 
     <div class="question-card">
       <div class="div-column div-column--aside">
-        <img class="question-avatar" src="/static/img/avatar.png" alt="" />
-        <input class="rating-input" type="number" value="5"></input>
+        <img class="question-avatar" src="{{ question.avatar_url }}" alt="" />
+        <input class="rating-input" type="number" value="{{ question.rating }}"></input>
       </div>
       <div class="div-column div-column--main">
-        <p class="info-text">Тема вопроса</p>
-        <p>Текст вопроса</p>
+        <p>{{ question.title }}</p>
+        <p>{{ question.text }}</p>
         <p>
-          Тэги: 
-          <a href="/">WEB</a>
-          <a href="/">Технопарк</a>
+          Тэги:
+          {% for t in question.tags %}
+            <a href="{% url 'questions:tag' t %}">{{ t }}</a>
+          {% endfor %}
         </p>
       </div>
     </div>
 
     <hr />
-
-    <div class="answer-card">
-      <div class="div-column div-column--aside">
-        <img class="question-avatar" src="/static/img/avatar.png" alt="" />
-        <input class="rating-input" type="number" value="5"></input>
+    {% for a in answers %}
+      <div class="answer-card">
+        <div class="div-column div-column--aside">
+          <img class="question-avatar" src="{{ a.author_avatar_url }}" alt="" />
+          <input class="rating-input" type="number" value="{{ a.rating }}"></input>
+        </div>
+        <div class="div-column div-column--main">
+          <p>{{ a.text }}</p>
+          <p>
+            <input id="{{ cid }}" type="checkbox" {% if a.correct %}checked{% endif %} disabled>
+            <label for="{{ cid }}">Правильно</label>
+          </p>
+        </div>
+        
       </div>
-      <div class="div-column div-column--main">
-        <p>Ответ</p>
-        <p>
-          <input type="checkbox" />
-          <span>Правильно</span>
-
-        </p>
-      </div>
-      
-    </div>
+    {% empty %}
+      <li>Ответов пока нет.</li>
+    {% endfor %}
 
 
     <hr />
@@ -48,9 +51,9 @@
       <div class="div-column--main">
         <textarea 
           class="user-answer"
+          rows="4"
           placeholder="Введите Ваш ответ"
-        >
-        </textarea>
+        ></textarea>
         <button type="submit"> Ответ </button>
       </div>
     </div>
