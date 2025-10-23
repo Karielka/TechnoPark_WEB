@@ -1,4 +1,6 @@
 # Django #
+./conf
+
 *.log.*
 *.pot
 *.pyc
