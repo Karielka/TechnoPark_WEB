@@ -9,16 +9,16 @@
 
     <div class="question-card">
       <div class="div-column div-column--aside">
-        <img class="question-avatar" src="{{ question.avatar_url }}" alt="" />
+        <img class="question-avatar" src="{{ question.user.profile.avatar_url }}" alt="" />
         <input class="rating-input" type="number" value="{{ question.rating }}"></input>
       </div>
       <div class="div-column div-column--main">
-        <p>{{ question.title }}</p>
+        <p>{{ question.topic }}</p>
         <p>{{ question.text }}</p>
         <p>
           Тэги:
-          {% for t in question.tags %}
-            <a href="{% url 'questions:tag' t %}">{{ t }}</a>
+          {% for t in question.tags.all %}
+            <a href="{% url 'questions:tag' t.title %}">{{ t.title }}</a>
           {% endfor %}
         </p>
       </div>
@@ -28,7 +28,7 @@
     {% for a in answers %}
       <div class="answer-card">
         <div class="div-column div-column--aside">
-          <img class="question-avatar" src="{{ a.author_avatar_url }}" alt="" />
+          <img class="question-avatar" src="{{ a.user.profile.avatar_url }}" alt="" />
           <input class="rating-input" type="number" value="{{ a.rating }}"></input>
         </div>
         <div class="div-column div-column--main">
