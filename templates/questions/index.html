@@ -1,5 +1,5 @@
 {% extends "base.html" %}
-
+{% load static %}
 {% block title %}Страница "вопросы"{% endblock %}
 
 {% block content %}
@@ -10,17 +10,17 @@
     {% for q in questions %}
       <div class="question-card">
         <div class="div-column div-column--aside">
-          <img class="question-avatar" src="{{ q.avatar_url }}" alt="" />
+          <img class="question-avatar" src="{{ q.user.profile.avatar_url }}" alt="" />
           <input class="rating-input" type="number" value="{{ q.rating }}"></input>
         </div>
         <div class="div-column div-column--main">
-          <p><a href="{% url 'questions:question_detail' q.id %}">{{ q.title }}</a></p>
+          <p><a href="{% url 'questions:question_detail' q.id %}">{{ q.topic }}</a></p>
           <p>{{ q.text }}</p>
           <p>
-            <a href="{% url 'questions:question_detail' q.id %}">Ответы({{ q.answers_count }})</a>
+            <a href="{% url 'questions:question_detail' q.id %}">Ответы({{ q.answer_count }})</a>
             Тэги:
-            {% for t in q.tags %}
-              <a href="{% url 'questions:tag' t %}">{{ t }}</a>
+            {% for t in q.tags.all %}
+              <a href="{% url 'questions:tag' t.title %}">{{ t.title }}</a>
             {% endfor %}
           </p>
         </div>
@@ -30,18 +30,5 @@
     {% endfor %}
 
     {% include "questions/pagination.html" with page_obj=page_obj %}
-
-    {% comment %} <div>
-      <ul class="div-row">
-        <span class="pagination-btn"><a href="?page=1">1</a></span>
-        <span class="pagination-btn"><a href="?page=2">2</a></span>
-
-        <span class="pagination-btn"><a href="?page=2">...</a></span>
-        <span class="pagination-btn"><a href="?page=2">53</a></span>
-      </ul>
-    </div> {% endcomment %}
-
   </div>
-
-
 {% endblock %}

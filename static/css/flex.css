@@ -41,10 +41,21 @@
   padding: 0.5rem;
 }
 .pagination-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 2rem;
+  min-width: 2rem;
+  padding: 0 0.5rem;
   border: 1px solid;
   margin-left: 1rem;
-  width: 2rem;
-  height: 2rem;
+  box-sizing: border-box;
+  white-space: nowrap;
+}
+.pagination-btn > a,
+.pagination-btn > strong {
+  display: inline-block;
+  line-height: 1;
 }
 .flex-table {
   display: grid;
