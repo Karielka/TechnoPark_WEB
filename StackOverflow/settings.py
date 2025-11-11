@@ -58,6 +58,10 @@ MIDDLEWARE = [
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
+MIDDLEWARE += [
+    'users.middleware.LoginRequiredMiddleware',
+]
+
 ROOT_URLCONF = 'StackOverflow.urls'
 
 TEMPLATES = [
@@ -99,6 +103,10 @@ DATABASES = {
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
+
+LOGIN_REDIRECT_URL = "users:profile"
+LOGIN_URL = "users:login"
+LOGOUT_REDIRECT_URL = "users:login"
 
 AUTH_PASSWORD_VALIDATORS = [
     {

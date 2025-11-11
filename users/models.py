@@ -20,10 +20,6 @@ class UserProfile(models.Model):
         null=True,
         verbose_name="Аватар",
     )
-    is_admin = models.BooleanField(
-        default=False,
-        verbose_name="Админ",
-    )
 
 
     class Meta:
