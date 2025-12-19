@@ -1,5 +1,6 @@
 from django.conf import settings
 from django.db import models
+from .managers import QuestionManager
 
 
 class Question(models.Model):
@@ -44,11 +45,12 @@ class Question(models.Model):
         verbose_name="Время создания",
     )
 
+    objects = QuestionManager()
+
 
     class Meta:
         verbose_name = "Вопрос"
         verbose_name_plural = "Вопросы"
-        indexes = [models.Index(fields=['created_at']), ]
         
 
     def __str__(self):
@@ -57,12 +59,12 @@ class Question(models.Model):
 
     def add_answer(self):
         self.answer_count += 1
-        self.save()
+        self.save(update_fields=['answer_count'])
 
 
     def add_mark(self, mark):
         self.rating += mark
-        self.save()
+        self.save(update_fields=['rating'])
 
 
 class Answer(models.Model):
@@ -107,7 +109,7 @@ class Answer(models.Model):
     class Meta:
         verbose_name = "Ответ"
         verbose_name_plural = "Ответы"
-        indexes = [models.Index(fields=['created_at']), models.Index(fields=['question']),]
+        indexes = [models.Index(fields=['question']),]
         
 
     def save(self, *args, **kwargs):
@@ -121,7 +123,7 @@ class Answer(models.Model):
 
     def add_mark(self, mark):
         self.rating += mark
-        self.save()
+        self.save(update_fields=['rating'])
 
 
 class Tag(models.Model):
@@ -144,10 +146,11 @@ class Tag(models.Model):
     
 
 class QuestionMark(models.Model):
-    VALUES = [
-        (1, 'Like'), 
-        (-1, 'Dislike')
-    ]
+
+    class Values(models.IntegerChoices):
+        Like = 1
+        Dislike = -1
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE, 
@@ -165,7 +168,7 @@ class QuestionMark(models.Model):
     mark = models.SmallIntegerField(
         blank=False,
         null=False,
-        choices=VALUES,
+        choices=Values.choices,
         verbose_name="Оценка",
     )
 
@@ -186,10 +189,11 @@ class QuestionMark(models.Model):
 
 
 class AnswerMark(models.Model):
-    VALUES = [
-        (1, 'Like'), 
-        (-1, 'Dislike')
-    ]
+
+    class Values(models.IntegerChoices):
+        Like = 1
+        Dislike = -1
+
     user = models.ForeignKey(
         settings.AUTH_USER_MODEL, 
         on_delete=models.CASCADE, 
@@ -207,7 +211,7 @@ class AnswerMark(models.Model):
     mark = models.SmallIntegerField(
         blank=False,
         null=False,
-        choices=VALUES,
+        choices=Values.choices,
         verbose_name="Оценка",
     )
 

@@ -12,10 +12,8 @@ from django.utils import timezone
 from django.urls import reverse
 
 from .pagination import paginate
-from .utils import QuestionManager
 from .models import Question
 
-question_manager = QuestionManager()
 
 class HomeView(TemplateView):
     template_name = "questions/index.html"
@@ -23,7 +21,7 @@ class HomeView(TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         page_number = int(self.request.GET.get("page", 1))
-        questions, total_pages = question_manager.get_new_question(page_number)
+        questions, total_pages = Question.objects.get_new_question(page_number)
         page_obj = paginate(questions, page_number, total_pages)
 
         ctx.update({
@@ -40,7 +38,7 @@ class HotView(TemplateView):
     def get_context_data(self, **kwargs):
         ctx = super().get_context_data(**kwargs)
         page_number = int(self.request.GET.get("page", 1))
-        questions, total_pages = question_manager.get_hot_question(page_number)
+        questions, total_pages = Question.objects.get_hot_question(page_number)
         page_obj = paginate(questions, page_number, total_pages)
 
         ctx.update({
@@ -58,7 +56,7 @@ class TagView(TemplateView):
         ctx = super().get_context_data(**kwargs)
         tag = kwargs.get("tag")
         page_number = int(self.request.GET.get("page", 1))
-        questions, total_pages = question_manager.get_tag_question(tag, page_number)
+        questions, total_pages = Question.objects.get_tag_question(tag, page_number)
         page_obj = paginate(questions, page_number, total_pages)
 
         ctx.update({

@@ -1,7 +1,9 @@
-from .models import Question, Tag
 from django.db.models import Q
+from django.db import models
+from django.apps import apps
 
-class QuestionManager():
+
+class QuestionManager(models.Manager):
     QUESTION_COUNT_PAGE = 10
 
     def _get_question_by_page(self, questions, page_number = 1):
@@ -32,24 +34,26 @@ class QuestionManager():
 
 
     def get_hot_question(self, page_number = 1):
-        questions = Question.objects.all().order_by('-rating', '-answer_count', '-created_at')
+        questions = self.get_queryset().order_by('-rating', '-answer_count', '-created_at')
         return self._get_question_by_page(questions, page_number)
 
 
     def get_new_question(self, page_number = 1):
-        questions = Question.objects.all().order_by('-created_at')
+        questions = self.get_queryset().order_by('-created_at')
         return self._get_question_by_page(questions, page_number)
 
 
     def get_tag_question(self, tag, page_number = 1):
+        Tag = apps.get_model('questions', 'Tag')
+
         if not tag:
-            questions = Question.objects.all()
+            questions = self.get_queryset()
         elif isinstance(tag, Tag):
-            questions = Question.objects.filter(tags=tag)
+            questions = self.get_queryset().filter(tags=tag)
         elif isinstance(tag, int):
-            questions = Question.objects.filter(Q(tags__id=tag))
+            questions = self.get_queryset().filter(Q(tags__id=tag))
         else:
-            questions = Question.objects.filter(Q(tags__title=tag))
+            questions = self.get_queryset().filter(Q(tags__title=tag))
         questions = questions.order_by('-created_at').distinct()
 
         return self._get_question_by_page(questions, page_number)
