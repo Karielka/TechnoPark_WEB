@@ -3,34 +3,33 @@
 
 {% block title %}Новый вопрос{% endblock %}
 
-{% block extra_head %} 
-  <link rel="stylesheet" href="{% static 'css/forms.css' %}"> 
+{% block extra_head %}
+  <link rel="stylesheet" href="{% static 'css/forms.css' %}">
 {% endblock %}
 
 {% block content %}
   <div class="div-container">
-    <form class="form">
+    <form class="form" method="post">
+      {% csrf_token %}
+
       <div class="form-grid">
-        <label for="title">Вопрос</label>
-        <input id="title" name="title" type="text">
 
-        <label for="question-text">Текст вопроса</label>
-        <textarea id="question-text" name="text" rows="6"></textarea>
+        <label for="{{ form.topic.id_for_label }}">Вопрос</label>
+        {{ form.topic }}
+        {% if form.topic.errors %}{{ form.topic.errors }}{% endif %}
 
-        <label for="tags">Список тэгов</label>
-        <input id="tags" name="tags" type="text">
+        <label for="{{ form.text.id_for_label }}">Текст вопроса</label>
+        {{ form.text }}
+        {% if form.text.errors %}{{ form.text.errors }}{% endif %}
+
+        <label for="{{ form.tags.id_for_label }}">Список тэгов Вводите через ;</label>
+        {{ form.tags }}
+        {% if form.tags.errors %}{{ form.tags.errors }}{% endif %}
 
         <p></p>
         <button type="submit">Спросить!</button>
 
       </div>
-
-
-        
     </form>
-
-
-
   </div>
-
 {% endblock %}

@@ -63,7 +63,7 @@ class Question(models.Model):
 
 
     def add_mark(self, mark):
-        self.rating += mark
+        self.rating = (self.rating or 0) + mark
         self.save(update_fields=['rating'])
 
 
@@ -110,11 +110,6 @@ class Answer(models.Model):
         verbose_name = "Ответ"
         verbose_name_plural = "Ответы"
         indexes = [models.Index(fields=['question']),]
-        
-
-    def save(self, *args, **kwargs):
-        self.question.add_answer()
-        super().save(*args, **kwargs)
 
 
     def __str__(self):
@@ -122,7 +117,7 @@ class Answer(models.Model):
     
 
     def add_mark(self, mark):
-        self.rating += mark
+        self.rating = (self.rating or 0) + mark
         self.save(update_fields=['rating'])
 
 
@@ -177,11 +172,6 @@ class QuestionMark(models.Model):
         verbose_name = "Оценка вопроса"
         verbose_name_plural = "Оценки вопросов"
         unique_together = ["user", "question"]
-
-    
-    def save(self, *args, **kwargs):
-        self.question.add_mark(self.mark)
-        super().save(*args, **kwargs)
         
 
     def __str__(self):
@@ -220,13 +210,7 @@ class AnswerMark(models.Model):
         verbose_name = "Оценка ответа"
         verbose_name_plural = "Оценки ответов"
         unique_together = ["user", "answer"]
-        
-
-    def save(self, *args, **kwargs):
-        self.answer.add_mark(self.mark)
-        super().save(*args, **kwargs)
 
 
     def __str__(self):
         return f"Оценка с id = {self.id}: {self.mark} для ответа {self.answer_id}"
-
