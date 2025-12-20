@@ -5,14 +5,49 @@
 {% block content %}
   <p class="info-header"> Новые вопросы <a class="info-text" href="{% url 'questions:hot' %}">Горячие вопросы</a></p>
 
+  {# чтобы CSRF точно был доступен для AJAX #}
+  <form style="display:none;">
+    {% csrf_token %}
+  </form>
+
   <div class="div-column">
-    
+
     {% for q in questions %}
       <div class="question-card">
+        
         <div class="div-column div-column--aside">
           <img class="question-avatar" src="{{ q.user.profile.avatar_url }}" alt="" />
-          <input class="rating-input" type="number" value="{{ q.rating }}"></input>
+
+          {% if user.is_authenticated %}
+            <div class="rating-row">
+              <button
+                type="button"
+                class="question-mark-btn"
+                data-url="{% url 'questions:question_mark' q.id %}"
+                data-mark="1"
+                title="Нравится"
+              >
+                <img class="mark-icon" src="{% static 'icons/like.svg' %}" alt="Like">
+              </button>
+
+              <input class="rating-input" type="number" value="{{ q.rating }}" disabled>
+
+              <button
+                type="button"
+                class="question-mark-btn"
+                data-url="{% url 'questions:question_mark' q.id %}"
+                data-mark="-1"
+                title="Не нравится"
+              >
+                <img class="mark-icon" src="{% static 'icons/dislike.svg' %}" alt="Dislike">
+              </button>
+            </div>
+          {% else %}
+            <input class="rating-input" type="number" value="{{ q.rating }}" disabled>
+          {% endif %}
         </div>
+
+
         <div class="div-column div-column--main">
           <p><a href="{% url 'questions:question_detail' q.id %}">{{ q.topic }}</a></p>
           <p>{{ q.text }}</p>
@@ -31,4 +66,66 @@
 
     {% include "questions/pagination.html" with page_obj=page_obj %}
   </div>
+
+
+
+  <script>
+    function getCsrfToken() {
+      const el = document.querySelector('[name=csrfmiddlewaretoken]');
+      return el ? el.value : '';
+    }
+
+    document.addEventListener("click", function (e) {
+      const btn = e.target.closest(".question-mark-btn");
+      if (!btn) return;
+
+      const url = btn.dataset.url;
+      const mark = btn.dataset.mark;
+      const card = btn.closest(".question-card");
+      const ratingInput = card.querySelector(".rating-input");
+      const csrfToken = getCsrfToken();
+
+      btn.disabled = true;
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "X-CSRFToken": csrfToken
+        },
+        body: "mark=" + encodeURIComponent(mark),
+        credentials: "same-origin"
+      })
+      .then(function (res) {
+        return res.json().then(function (data) {
+          return { ok: res.ok, status: res.status, data: data };
+        });
+      })
+      .then(function (resp) {
+        btn.disabled = false;
+
+        if (!resp.ok) {
+          console.log("mark error", resp.status, resp.data);
+          return;
+        }
+
+        ratingInput.value = resp.data.rating;
+
+        const buttons = card.querySelectorAll(".question-mark-btn");
+        buttons.forEach(function (b) { b.classList.remove("active"); });
+
+        if (resp.data.mark === 1) {
+          card.querySelector('.question-mark-btn[data-mark="1"]').classList.add("active");
+        }
+        if (resp.data.mark === -1) {
+          card.querySelector('.question-mark-btn[data-mark="-1"]').classList.add("active");
+        }
+      })
+      .catch(function (err) {
+        btn.disabled = false;
+        console.log("mark error", err);
+      });
+    });
+  </script>
+
 {% endblock %}

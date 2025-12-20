@@ -13,7 +13,7 @@ from django.utils import timezone
 from django.urls import reverse
 
 from .pagination import paginate
-from .models import Question, Answer, Tag
+from .models import Question, Answer, Tag, QuestionMark, AnswerMark
 from .forms import QuestionForm, AnswerForm
 
 
@@ -134,3 +134,129 @@ class AnswerCreateView(View):
             "answers": answers,
             "answer_form": form,
         })
+    
+
+class QuestionMarkAjaxView(View):
+    def post(self, request, pk):
+        if not request.user.is_authenticated:
+            return JsonResponse({"error": "auth_required"}, status=403)
+
+        question = get_object_or_404(Question, pk=pk)
+
+        mark = request.POST.get("mark")
+
+        if mark == "like":
+            mark = 1
+        elif mark == "dislike":
+            mark = -1
+
+        try:
+            mark = int(mark)
+        except (TypeError, ValueError):
+            return JsonResponse({"error": "bad_mark"}, status=400)
+
+        if mark not in (1, -1):
+            return JsonResponse({"error": "bad_mark"}, status=400)
+
+        existing = QuestionMark.objects.filter(user=request.user, question=question).first()
+
+        # rating может быть None в БД, на всякий случай
+        question.rating = question.rating or 0
+
+        if existing:
+            # Если нажал ту же оценку — снимаем
+            if existing.mark == mark:
+                existing.delete()
+                question.rating -= mark
+                question.save(update_fields=["rating"])
+                return JsonResponse({"rating": question.rating, "mark": 0})
+
+            # Если была противоположная — переключаем
+            question.rating += (mark - existing.mark)
+            existing.mark = mark
+            existing.save(update_fields=["mark"])
+            question.save(update_fields=["rating"])
+            return JsonResponse({"rating": question.rating, "mark": mark})
+
+        # Если оценки не было — создаём
+        QuestionMark.objects.create(user=request.user, question=question, mark=mark)
+        question.rating += mark
+        question.save(update_fields=["rating"])
+        return JsonResponse({"rating": question.rating, "mark": mark})
+    
+
+class AnswerMarkAjaxView(View):
+    def post(self, request, pk):
+        if not request.user.is_authenticated:
+            return JsonResponse({"error": "auth_required"}, status=403)
+
+        answer = get_object_or_404(Answer, pk=pk)
+
+        mark = request.POST.get("mark")
+
+        if mark == "like":
+            mark = 1
+        elif mark == "dislike":
+            mark = -1
+
+        try:
+            mark = int(mark)
+        except (TypeError, ValueError):
+            return JsonResponse({"error": "bad_mark"}, status=400)
+
+        if mark not in (1, -1):
+            return JsonResponse({"error": "bad_mark"}, status=400)
+
+        existing = AnswerMark.objects.filter(user=request.user, answer=answer).first()
+
+        answer.rating = answer.rating or 0
+
+        # Если уже было — снимаем или переключаем
+        if existing:
+            if existing.mark == mark:
+                existing.delete()
+                answer.rating -= mark
+                answer.save(update_fields=["rating"])
+                return JsonResponse({"rating": answer.rating, "mark": 0, "answer_id": answer.id})
+
+            answer.rating += (mark - existing.mark)
+            existing.mark = mark
+            existing.save(update_fields=["mark"])
+            answer.save(update_fields=["rating"])
+            return JsonResponse({"rating": answer.rating, "mark": mark, "answer_id": answer.id})
+
+        # Если не было — создаём
+        AnswerMark.objects.create(user=request.user, answer=answer, mark=mark)
+        answer.rating += mark
+        answer.save(update_fields=["rating"])
+        return JsonResponse({"rating": answer.rating, "mark": mark, "answer_id": answer.id})
+
+
+class AnswerCorrectAjaxView(View):
+    def post(self, request, pk):
+        if not request.user.is_authenticated:
+            return JsonResponse({"error": "auth_required"}, status=403)
+
+        question = get_object_or_404(Question, pk=pk)
+
+        if question.user_id != request.user.id:
+            return JsonResponse({"error": "not_allowed"}, status=403)
+
+        answer_id = request.POST.get("answer_id")
+        try:
+            answer_id = int(answer_id)
+        except (TypeError, ValueError):
+            return JsonResponse({"error": "bad_answer_id"}, status=400)
+
+        answer = get_object_or_404(Answer, pk=answer_id, question_id=question.id)
+
+        # если уже правильный — снимаем
+        if answer.is_correct:
+            Answer.objects.filter(question_id=question.id, is_correct=True).update(is_correct=False)
+            return JsonResponse({"ok": True, "answer_id": 0})
+
+        # иначе: снимаем прошлый и ставим новый
+        Answer.objects.filter(question_id=question.id, is_correct=True).update(is_correct=False)
+        Answer.objects.filter(pk=answer.id).update(is_correct=True)
+
+        return JsonResponse({"ok": True, "answer_id": answer.id})
