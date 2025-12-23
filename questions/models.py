@@ -44,6 +44,12 @@ class Question(models.Model):
         db_index=True,
         verbose_name="Время создания",
     )
+    cover = models.ImageField(
+        upload_to="questions/covers/",
+        blank=True,
+        null=True,
+        verbose_name="Обложка",
+    )
 
     objects = QuestionManager()
 
@@ -65,6 +71,10 @@ class Question(models.Model):
     def add_mark(self, mark):
         self.rating = (self.rating or 0) + mark
         self.save(update_fields=['rating'])
+
+    @property
+    def has_correct_answer(self) -> bool:
+        return self.question_answers.filter(is_correct=True).exists()
 
 
 class Answer(models.Model):

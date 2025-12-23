@@ -15,9 +15,24 @@ from django.urls import reverse
 from .pagination import paginate
 from .models import Question, Answer, Tag, QuestionMark, AnswerMark
 from .forms import QuestionForm, AnswerForm
+from .caches import LatestQuestionsCache, PopularTagsCache, BestMembersCache
 
 
-class HomeView(TemplateView):
+class SidebarCacheMixin:
+    """
+    Только чтение из кэша. Никаких запросов к БД.
+    """
+    def get_context_data(self, **kwargs):
+        ctx = super().get_context_data(**kwargs)
+        ctx.update({
+            "sidebar_latest_questions": LatestQuestionsCache.get_items(),
+            "sidebar_popular_tags": PopularTagsCache.get_items(),
+            "sidebar_best_members": BestMembersCache.get_items(),
+        })
+        return ctx
+
+
+class HomeView(SidebarCacheMixin, TemplateView):
     template_name = "questions/index.html"
 
     def get_context_data(self, **kwargs):
@@ -34,7 +49,7 @@ class HomeView(TemplateView):
         return ctx
 
 
-class HotView(TemplateView):
+class HotView(SidebarCacheMixin, TemplateView):
     template_name = "questions/index.html"
 
     def get_context_data(self, **kwargs):
@@ -51,7 +66,7 @@ class HotView(TemplateView):
         return ctx
 
 
-class TagView(TemplateView):
+class TagView(SidebarCacheMixin, TemplateView):
     template_name = "questions/index.html"
 
     def get_context_data(self, **kwargs):
@@ -70,7 +85,7 @@ class TagView(TemplateView):
         return ctx
 
 
-class QuestionDetailView(TemplateView):
+class QuestionDetailView(SidebarCacheMixin, TemplateView):
     template_name = "questions/question_detail.html"
 
     def get_context_data(self, **kwargs):
@@ -86,7 +101,7 @@ class QuestionDetailView(TemplateView):
         return ctx
 
 
-class QuestionCreateView(CreateView):
+class QuestionCreateView(SidebarCacheMixin, CreateView):
     model = Question
     form_class = QuestionForm
     template_name = "questions/question_create.html"
@@ -126,6 +141,7 @@ class AnswerCreateView(View):
             answer.question = question
             answer.save()
             answer.question.add_answer()
+            self._notify_question_author(question=question, answer=answer, request=request)
             return redirect("questions:question_detail", pk=question.id)
 
         answers = Answer.objects.filter(question=question).order_by("created_at")
@@ -134,6 +150,56 @@ class AnswerCreateView(View):
             "answers": answers,
             "answer_form": form,
         })
+    
+    def _notify_question_author(self, *, question: Question, answer: Answer, request):
+        """
+        Письмо отправляем синхронно через SMTP (MailDev).
+        Ошибки отправки НЕ валят создание ответа.
+        """
+        from django.conf import settings
+        from django.core.mail import send_mail
+        from django.template.loader import render_to_string
+        from django.utils.html import strip_tags
+
+        author = question.user
+
+        # нет email — некуда отправлять
+        to_email = getattr(author, "email", "") or ""
+        if not to_email:
+            return
+
+        # не отправляем, если автор вопроса сам себе ответил
+        if author.id == answer.user_id:
+            return
+
+        subject = f"Новый ответ на ваш вопрос: {question.topic[:60]}"
+
+        context = {
+            "author": author,
+            "question": question,
+            "answer": answer,
+            "site_url": request.build_absolute_uri("/").rstrip("/"),
+            "question_url": request.build_absolute_uri(
+                reverse("questions:question_detail", kwargs={"pk": question.id})
+            ),
+        }
+
+        # HTML + текстовая версия
+        html_message = render_to_string("emails/new_answer.html", context)
+        plain_message = strip_tags(html_message)
+
+        try:
+            send_mail(
+                subject=subject,
+                message=plain_message,
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[to_email],
+                html_message=html_message,
+                fail_silently=True,
+            )
+        except Exception:
+            # на всякий случай
+            pass
     
 
 class QuestionMarkAjaxView(View):

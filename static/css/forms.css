@@ -54,12 +54,26 @@
   padding: 10px 16px;
   border-radius: 999px;
   border: 1px solid #111827;
-  background: #fff;
   font-weight: 600;
   cursor: pointer;
 }
-.btn-primary {
-  border-color: #2563eb;
+.btn.btn-primary {
+  background: #fff;
+  border: 2px solid #0d6efd;
+  color: #0d6efd;
+}
+
+.btn.btn-primary:hover,
+.btn.btn-primary:focus {
+  background: #0d6efd;
+  border-color: #0d6efd;
+  color: #fff;
+}
+
+.btn.btn-primary:active {
+  background: #0b5ed7;
+  border-color: #0b5ed7;
+  color: #fff;
 }
 .link-secondary {
   color: #2563eb;

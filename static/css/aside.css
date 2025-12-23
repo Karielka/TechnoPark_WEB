@@ -1,0 +1,95 @@
+/* static/css/aside.css */
+
+.div-column--aside {
+  /* гарантируем, что содержимое колонки начинается сверху */
+  align-self: flex-start;
+  position: sticky;
+  top: 16px;              /* чтобы сайдбар был сверху и “прилипал” */
+}
+
+.aside-block {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.aside-card {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 14px 14px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+}
+
+.tags-cloud {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+/* Тег как “плашка”, не синяя ссылка */
+.tag-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 6px 10px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-weight: 600;
+  font-size: 13px;
+  line-height: 1;
+  border: 1px solid rgba(0,0,0,0.08);
+  color: #111 !important;       /* убираем “синий” */
+}
+
+/* Разноцветность: можно расширять палитру */
+.tag-chip:nth-child(4n+1) { background: rgba(255, 0, 0, 0.10); }
+.tag-chip:nth-child(4n+2) { background: rgba(0, 128, 0, 0.10); }
+.tag-chip:nth-child(4n+3) { background: rgba(128, 0, 128, 0.10); }
+.tag-chip:nth-child(4n+4) { background: rgba(255, 165, 0, 0.12); }
+
+.tag-chip:hover {
+  filter: brightness(0.98);
+  transform: translateY(-1px);
+  transition: 0.12s ease;
+}
+
+.aside-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.aside-list__item {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.aside-list__name {
+  font-weight: 600;
+}
+
+.aside-list__meta {
+  font-size: 12px;
+  opacity: 0.7;
+}
+
+/* Ссылки в latest questions — не “синие” */
+.aside-link {
+  text-decoration: none;
+  color: #111 !important;
+  font-weight: 600;
+}
+
+.aside-link:hover {
+  text-decoration: underline;
+}
+
+.muted {
+  opacity: 0.65;
+  font-size: 13px;
+}

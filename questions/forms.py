@@ -9,10 +9,15 @@ class QuestionForm(forms.ModelForm):
         label="Список тэгов",
         widget=forms.TextInput(attrs={"id": "tags", "name": "tags"}),
     )
+    cover = forms.ImageField(
+        required=False,
+        label="Обложка",
+        widget=forms.ClearableFileInput(attrs={"id": "cover", "name": "cover"}),
+    )
 
     class Meta:
         model = Question
-        fields = ["topic", "text", "tags"]
+        fields = ["topic", "text", "cover", "tags"]
         widgets = {
             "topic": forms.TextInput(attrs={"id": "title", "name": "title"}),
             "text": forms.Textarea(attrs={"id": "question-text", "name": "text", "rows": 6}),

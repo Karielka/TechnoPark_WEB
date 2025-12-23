@@ -12,8 +12,9 @@ from django.urls import reverse
 
 from .forms import LoginForm, SignupForm, ProfileUpdateForm
 from .models import UserProfile
+from questions.views import SidebarCacheMixin
 
-class LoginView(DjangoLoginView):
+class LoginView(SidebarCacheMixin, DjangoLoginView):
     template_name = "users/login.html"
     authentication_form = LoginForm
     redirect_authenticated_user = True
@@ -24,7 +25,7 @@ class LogoutView(DjangoLogoutView):
     http_method_names = ["post",]
 
 
-class SignupView(FormView):
+class SignupView(SidebarCacheMixin, FormView):
     template_name = "users/signup.html"
     form_class = SignupForm
     success_url = reverse_lazy("users:profile")
@@ -35,7 +36,7 @@ class SignupView(FormView):
         return redirect(self.get_success_url())
 
 
-class ProfileView(TemplateView):
+class ProfileView(SidebarCacheMixin, TemplateView):
     template_name = "users/profile.html"
 
     def get_context_data(self, **kwargs):
@@ -45,7 +46,7 @@ class ProfileView(TemplateView):
         return ctx
 
 
-class ProfileEditView(FormView):
+class ProfileEditView(SidebarCacheMixin, FormView):
     template_name = "users/profile_edit.html"
     form_class = ProfileUpdateForm
     success_url = reverse_lazy("users:profile")
