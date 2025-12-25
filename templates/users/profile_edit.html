@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Редактирование профиля{% endblock %}
+{% block extra_head %}<link rel="stylesheet" href="{% static 'css/forms.css' %}">{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+  <h1 class="auth-title">Редактирование профиля</h1>
+
+  <form method="post" class="auth-form" enctype="multipart/form-data" novalidate>
+    {% csrf_token %}
+
+    {% if form.non_field_errors %}
+      <div class="form-alert">{{ form.non_field_errors.0 }}</div>
+    {% endif %}
+
+    <div class="form-grid">
+      <div class="form-label">Логин</div>
+      <div><input type="text" value="{{ request.user.username }}" disabled></div>
+
+      <label class="form-label" for="{{ form.email.id_for_label }}">Почта</label>
+      <div>
+        {{ form.email }}
+        {% if form.email.errors %}<div class="form-error">{{ form.email.errors.0 }}</div>{% endif %}
+      </div>
+
+      <label class="form-label" for="{{ form.display_name.id_for_label }}">Имя</label>
+      <div>
+        {{ form.display_name }}
+        {% if form.display_name.errors %}<div class="form-error">{{ form.display_name.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="form-label">Текущее фото</div>
+      <div>
+        <img src="{{ form.instance.avatar_url }}" alt="avatar" style="height:120px;border-radius:8px;display:block;margin-bottom:8px;">
+        <label class="form-label" for="{{ form.avatar.id_for_label }}" style="display:block;margin-bottom:4px;">Новое фото</label>
+        {{ form.avatar }}
+        {% if form.avatar.errors %}<div class="form-error">{{ form.avatar.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Сохранить</button>
+        <a class="link-secondary" href="{% url 'users:profile' %}">Отмена</a>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

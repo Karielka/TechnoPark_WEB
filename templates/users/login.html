@@ -8,22 +8,40 @@
 {% endblock %}
 
 {% block content %}
-  <div class="div-container">
-    <div class="flex-table">
-      <label> 
-        Логин
-      </label>
-      <input type="text"/>
-      <label> 
-        Пароль
-      </label>
-      <input type="password"/>
-      <p></p>
-      <button>Войти</button>
-      <p></p>
-      <a>Зарегистрироваться</a>
-    </div>
+  <div class="auth-container">
+    <div class="auth-card">
+      <h1 class="auth-title">Вход</h1>
+      <form method="post" class="auth-form" novalidate>
+        {% csrf_token %}
 
+        {% if form.non_field_errors %}
+          <div class="form-alert">{{ form.non_field_errors.0 }}</div>
+        {% endif %}
+
+        <div class="form-grid">
+          <label class="form-label" for="{{ form.username.id_for_label }}">Имя пользователя</label>
+          <div>
+            {{ form.username }}
+            {% if form.username.errors %}
+              <div class="form-error">{{ form.username.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <label class="form-label" for="{{ form.password.id_for_label }}">Пароль</label>
+          <div>
+            {{ form.password }}
+            {% if form.password.errors %}
+              <div class="form-error">{{ form.password.errors.0 }}</div>
+            {% endif %}
+          </div>
+
+          <div class="form-actions">
+            <button type="submit" class="btn btn-primary">Войти</button>
+            <a class="link-secondary" href="{% url 'users:signup' %}">Зарегистрироваться</a>
+          </div>
+        </div>
+      </form>     
+    </div> 
   </div>
 
 {% endblock %}

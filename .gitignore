@@ -1,5 +1,4 @@
 # Django #
-./conf
 
 *.log.*
 *.pot
@@ -9,6 +8,8 @@ db.sqlite3
 media
 tags
 staticfiles/
+/avatars/
+/conf/
 
 # Backup files # 
 *.bak 

@@ -4,10 +4,11 @@ from . import views
 app_name = "users"
 
 urlpatterns = [
+    path("login/",    views.LoginView.as_view(),    name="login"),
+    path("logout/",   views.LogoutView.as_view(),   name="logout"),
+    path("profile/",  views.ProfileView.as_view(),  name="profile"),
 
-    path("login/",     views.LoginView.as_view(),    name="login"),
-    path("profile/",   views.ProfileView.as_view(),  name="profile"),
-    path("signup/",    views.RegisterView.as_view(), name="signup"),
-    path("logout/",    views.RegisterView.as_view(), name="logout"),
+    path("signup/",   views.SignupView.as_view(),   name="signup"),
+    path("profile/edit/",   views.ProfileEditView.as_view(),  name="profile_edit"),
 
 ]

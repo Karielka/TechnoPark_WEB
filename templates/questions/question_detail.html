@@ -1,63 +1,317 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %} Страница вопроса {% endblock %}
 
 {% block content %}
 
+  {# CSRF для fetch #}
+  <form style="display:none;">
+    {% csrf_token %}
+  </form>
+
   <div class="div-column">
-    
 
     <div class="question-card">
       <div class="div-column div-column--aside">
-        <img class="question-avatar" src="{{ question.avatar_url }}" alt="" />
-        <input class="rating-input" type="number" value="{{ question.rating }}"></input>
+        <img class="question-avatar" src="{{ question.user.profile.avatar_url }}" alt="" />
+
+        {% if user.is_authenticated %}
+          <div class="rating-row">
+            <button
+              type="button"
+              class="question-mark-btn"
+              data-url="{% url 'questions:question_mark' question.id %}"
+              data-mark="1"
+              title="Нравится"
+            >
+              <img class="mark-icon" src="{% static 'icons/like.svg' %}" alt="Like">
+            </button>
+
+            <input class="rating-input question-rating-input" type="number" value="{{ question.rating }}" disabled>
+
+            <button
+              type="button"
+              class="question-mark-btn"
+              data-url="{% url 'questions:question_mark' question.id %}"
+              data-mark="-1"
+              title="Не нравится"
+            >
+              <img class="mark-icon" src="{% static 'icons/dislike.svg' %}" alt="Dislike">
+            </button>
+          </div>
+        {% else %}
+          <input class="rating-input question-rating-input" type="number" value="{{ question.rating }}" disabled>
+        {% endif %}
       </div>
+
       <div class="div-column div-column--main">
-        <p>{{ question.title }}</p>
+        <p>{{ question.topic }}</p>
         <p>{{ question.text }}</p>
         <p>
           Тэги:
-          {% for t in question.tags %}
-            <a href="{% url 'questions:tag' t %}">{{ t }}</a>
+          {% for t in question.tags.all %}
+            <a href="{% url 'questions:tag' t.title %}">{{ t.title }}</a>
           {% endfor %}
         </p>
       </div>
     </div>
 
     <hr />
+    <h3>Ответы:</h3>
+
     {% for a in answers %}
-      <div class="answer-card">
+      <div class="answer-card" id="answer-{{ a.id }}">
         <div class="div-column div-column--aside">
-          <img class="question-avatar" src="{{ a.author_avatar_url }}" alt="" />
-          <input class="rating-input" type="number" value="{{ a.rating }}"></input>
+          <img class="question-avatar" src="{{ a.user.profile.avatar_url }}" alt="" />
+
+          {% if user.is_authenticated %}
+            <div class="rating-row">
+              <button
+                type="button"
+                class="answer-mark-btn"
+                data-url="{% url 'questions:answer_mark' a.id %}"
+                data-mark="1"
+                title="Нравится"
+              >
+                <img class="mark-icon" src="{% static 'icons/like.svg' %}" alt="Like">
+              </button>
+
+              <input class="rating-input answer-rating-input" type="number" value="{{ a.rating }}" disabled>
+
+              <button
+                type="button"
+                class="answer-mark-btn"
+                data-url="{% url 'questions:answer_mark' a.id %}"
+                data-mark="-1"
+                title="Не нравится"
+              >
+                <img class="mark-icon" src="{% static 'icons/dislike.svg' %}" alt="Dislike">
+              </button>
+            </div>
+          {% else %}
+            <input class="rating-input answer-rating-input" type="number" value="{{ a.rating }}" disabled>
+          {% endif %}
         </div>
+
         <div class="div-column div-column--main">
           <p>{{ a.text }}</p>
+
           <p>
-            <input id="{{ cid }}" type="checkbox" {% if a.correct %}checked{% endif %} disabled>
-            <label for="{{ cid }}">Правильно</label>
+            {% if user.is_authenticated and user.id == question.user_id %}
+              <input
+                class="answer-correct-checkbox"
+                id="correct-{{ a.id }}"
+                type="checkbox"
+                {% if a.is_correct %}checked{% endif %}
+                data-url="{% url 'questions:answer_correct' question.id %}"
+                data-answer-id="{{ a.id }}"
+              >
+            {% else %}
+              <input
+                id="correct-{{ a.id }}"
+                type="checkbox"
+                {% if a.is_correct %}checked{% endif %}
+                disabled
+              >
+            {% endif %}
+
+            <label for="correct-{{ a.id }}">Правильно</label>
           </p>
         </div>
-        
       </div>
     {% empty %}
       <li>Ответов пока нет.</li>
     {% endfor %}
 
-
     <hr />
 
-    <div class="answer-card user-answer-card">
-      <div class="div-column--main">
-        <textarea 
-          class="user-answer"
-          rows="4"
-          placeholder="Введите Ваш ответ"
-        ></textarea>
-        <button type="submit"> Ответ </button>
+    <form method="post" action="{% url 'questions:answer_create' question.id %}">
+      {% csrf_token %}
+
+      <div class="answer-card user-answer-card">
+        <div class="div-column--main">
+
+          <textarea
+            class="user-answer"
+            name="{{ answer_form.text.name }}"
+            rows="4"
+            placeholder="Введите Ваш ответ"
+          >{{ answer_form.text.value|default_if_none:"" }}</textarea>
+
+          {% if answer_form.text.errors %}
+            <div class="form-error">
+              {{ answer_form.text.errors }}
+            </div>
+          {% endif %}
+
+          <button type="submit"> Ответ </button>
+        </div>
       </div>
-    </div>
+    </form>
+
   </div>
 
+  <script>
+    function getCsrfToken() {
+      const el = document.querySelector('[name=csrfmiddlewaretoken]');
+      return el ? el.value : '';
+    }
+
+    // Лайк/дизлайк ВОПРОСА
+    document.addEventListener("click", function (e) {
+      const btn = e.target.closest(".question-mark-btn");
+      if (!btn) return;
+
+      const url = btn.dataset.url;
+      const mark = btn.dataset.mark;
+      const card = btn.closest(".question-card");
+      const ratingInput = card.querySelector(".question-rating-input");
+      const csrfToken = getCsrfToken();
+
+      btn.disabled = true;
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "X-CSRFToken": csrfToken
+        },
+        body: "mark=" + encodeURIComponent(mark),
+        credentials: "same-origin"
+      })
+      .then(function (res) {
+        return res.json().then(function (data) {
+          return { ok: res.ok, status: res.status, data: data };
+        });
+      })
+      .then(function (resp) {
+        btn.disabled = false;
+
+        if (!resp.ok) {
+          console.log("question mark error", resp.status, resp.data);
+          return;
+        }
+
+        ratingInput.value = resp.data.rating;
+
+        const buttons = card.querySelectorAll(".question-mark-btn");
+        buttons.forEach(function (b) { b.classList.remove("active"); });
+
+        if (resp.data.mark === 1) {
+          card.querySelector('.question-mark-btn[data-mark="1"]').classList.add("active");
+        }
+        if (resp.data.mark === -1) {
+          card.querySelector('.question-mark-btn[data-mark="-1"]').classList.add("active");
+        }
+      })
+      .catch(function (err) {
+        btn.disabled = false;
+        console.log("question mark error", err);
+      });
+    });
+
+    // Лайк/дизлайк ОТВЕТА
+    document.addEventListener("click", function (e) {
+      const btn = e.target.closest(".answer-mark-btn");
+      if (!btn) return;
+
+      const url = btn.dataset.url;
+      const mark = btn.dataset.mark;
+      const card = btn.closest(".answer-card");
+      const ratingInput = card.querySelector(".answer-rating-input");
+      const csrfToken = getCsrfToken();
+
+      btn.disabled = true;
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "X-CSRFToken": csrfToken
+        },
+        body: "mark=" + encodeURIComponent(mark),
+        credentials: "same-origin"
+      })
+      .then(function (res) {
+        return res.json().then(function (data) {
+          return { ok: res.ok, status: res.status, data: data };
+        });
+      })
+      .then(function (resp) {
+        btn.disabled = false;
+
+        if (!resp.ok) {
+          console.log("answer mark error", resp.status, resp.data);
+          return;
+        }
+
+        ratingInput.value = resp.data.rating;
+
+        const buttons = card.querySelectorAll(".answer-mark-btn");
+        buttons.forEach(function (b) { b.classList.remove("active"); });
+
+        if (resp.data.mark === 1) {
+          card.querySelector('.answer-mark-btn[data-mark="1"]').classList.add("active");
+        }
+        if (resp.data.mark === -1) {
+          card.querySelector('.answer-mark-btn[data-mark="-1"]').classList.add("active");
+        }
+      })
+      .catch(function (err) {
+        btn.disabled = false;
+        console.log("answer mark error", err);
+      });
+    });
+
+    // Выбор правильного ответа
+    document.addEventListener("click", function (e) {
+      const cb = e.target.closest(".answer-correct-checkbox");
+      if (!cb) return;
+
+      e.preventDefault();
+
+      const url = cb.dataset.url;
+      const answerId = cb.dataset.answerId;
+      const csrfToken = getCsrfToken();
+
+      cb.disabled = true;
+
+      fetch(url, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+          "X-CSRFToken": csrfToken
+        },
+        body: "answer_id=" + encodeURIComponent(answerId),
+        credentials: "same-origin"
+      })
+      .then(function (res) {
+        return res.json().then(function (data) {
+          return { ok: res.ok, status: res.status, data: data };
+        });
+      })
+      .then(function (resp) {
+        cb.disabled = false;
+
+        if (!resp.ok) {
+          console.log("correct error", resp.status, resp.data);
+          return;
+        }
+
+        const all = document.querySelectorAll(".answer-correct-checkbox");
+        all.forEach(function (x) { x.checked = false; });
+
+        if (resp.data.answer_id && resp.data.answer_id > 0) {
+          const need = document.querySelector('.answer-correct-checkbox[data-answer-id="' + resp.data.answer_id + '"]');
+          if (need) need.checked = true;
+        }
+      })
+      .catch(function (err) {
+        cb.disabled = false;
+        console.log("correct error", err);
+      });
+    });
+  </script>
 
 {% endblock %}
