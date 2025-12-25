@@ -69,69 +69,72 @@
     <hr />
     <h3>Ответы:</h3>
 
-    {% for a in answers %}
-      <div class="answer-card" id="answer-{{ a.id }}">
-        <div class="div-column div-column--aside">
-          <img class="question-avatar" src="{{ a.user.profile.avatar_url }}" alt="" />
+    {# ✅ контейнер для realtime-добавления ответов #}
+    <div id="answers-container">
+      {% for a in answers %}
+        <div class="answer-card" id="answer-{{ a.id }}">
+          <div class="div-column div-column--aside">
+            <img class="question-avatar" src="{{ a.user.profile.avatar_url }}" alt="" />
 
-          {% if user.is_authenticated %}
-            <div class="rating-row">
-              <button
-                type="button"
-                class="answer-mark-btn"
-                data-url="{% url 'questions:answer_mark' a.id %}"
-                data-mark="1"
-                title="Нравится"
-              >
-                <img class="mark-icon" src="{% static 'icons/like.svg' %}" alt="Like">
-              </button>
+            {% if user.is_authenticated %}
+              <div class="rating-row">
+                <button
+                  type="button"
+                  class="answer-mark-btn"
+                  data-url="{% url 'questions:answer_mark' a.id %}"
+                  data-mark="1"
+                  title="Нравится"
+                >
+                  <img class="mark-icon" src="{% static 'icons/like.svg' %}" alt="Like">
+                </button>
 
-              <input class="rating-input answer-rating-input" type="number" value="{{ a.rating }}" disabled>
+                <input class="rating-input answer-rating-input" type="number" value="{{ a.rating }}" disabled>
 
-              <button
-                type="button"
-                class="answer-mark-btn"
-                data-url="{% url 'questions:answer_mark' a.id %}"
-                data-mark="-1"
-                title="Не нравится"
-              >
-                <img class="mark-icon" src="{% static 'icons/dislike.svg' %}" alt="Dislike">
-              </button>
-            </div>
-          {% else %}
-            <input class="rating-input answer-rating-input" type="number" value="{{ a.rating }}" disabled>
-          {% endif %}
-        </div>
-
-        <div class="div-column div-column--main">
-          <p>{{ a.text }}</p>
-
-          <p>
-            {% if user.is_authenticated and user.id == question.user_id %}
-              <input
-                class="answer-correct-checkbox"
-                id="correct-{{ a.id }}"
-                type="checkbox"
-                {% if a.is_correct %}checked{% endif %}
-                data-url="{% url 'questions:answer_correct' question.id %}"
-                data-answer-id="{{ a.id }}"
-              >
+                <button
+                  type="button"
+                  class="answer-mark-btn"
+                  data-url="{% url 'questions:answer_mark' a.id %}"
+                  data-mark="-1"
+                  title="Не нравится"
+                >
+                  <img class="mark-icon" src="{% static 'icons/dislike.svg' %}" alt="Dislike">
+                </button>
+              </div>
             {% else %}
-              <input
-                id="correct-{{ a.id }}"
-                type="checkbox"
-                {% if a.is_correct %}checked{% endif %}
-                disabled
-              >
+              <input class="rating-input answer-rating-input" type="number" value="{{ a.rating }}" disabled>
             {% endif %}
+          </div>
 
-            <label for="correct-{{ a.id }}">Правильно</label>
-          </p>
+          <div class="div-column div-column--main">
+            <p>{{ a.text }}</p>
+
+            <p>
+              {% if user.is_authenticated and user.id == question.user_id %}
+                <input
+                  class="answer-correct-checkbox"
+                  id="correct-{{ a.id }}"
+                  type="checkbox"
+                  {% if a.is_correct %}checked{% endif %}
+                  data-url="{% url 'questions:answer_correct' question.id %}"
+                  data-answer-id="{{ a.id }}"
+                >
+              {% else %}
+                <input
+                  id="correct-{{ a.id }}"
+                  type="checkbox"
+                  {% if a.is_correct %}checked{% endif %}
+                  disabled
+                >
+              {% endif %}
+
+              <label for="correct-{{ a.id }}">Правильно</label>
+            </p>
+          </div>
         </div>
-      </div>
-    {% empty %}
-      <li>Ответов пока нет.</li>
-    {% endfor %}
+      {% empty %}
+        <p id="answers-empty">Ответов пока нет.</p>
+      {% endfor %}
+    </div>
 
     <hr />
 
@@ -322,5 +325,148 @@
       });
     });
   </script>
+
+
+  {% if centrifuge_enabled %}
+    <script src="https://unpkg.com/centrifuge@5.0.0/dist/centrifuge.min.js"></script>
+    <script>
+      (function () {
+        // Настройки приходят из QuestionDetailView (centrifuge_ws_url / centrifuge_channel)
+        const wsUrl = "{{ centrifuge_ws_url|escapejs }}";
+        const channel = "{{ centrifuge_channel|escapejs }}";
+        const tokenUrl = "{% url 'centrifuge_client:token' %}";
+
+        function escapeHtml(s) {
+          return String(s)
+            .replaceAll("&", "&amp;")
+            .replaceAll("<", "&lt;")
+            .replaceAll(">", "&gt;")
+            .replaceAll('"', "&quot;")
+            .replaceAll("'", "&#039;");
+        }
+
+        function renderAnswerCard(payload) {
+          const answer = payload.answer;
+
+          const isAuth = {% if user.is_authenticated %}true{% else %}false{% endif %};
+          const isOwner = {% if user.is_authenticated and user.id == question.user_id %}true{% else %}false{% endif %};
+
+          const avatar = answer.user.avatar_url ? answer.user.avatar_url : "";
+          const safeText = escapeHtml(answer.text);
+
+          // rating controls — в точности как твоя разметка (иконки)
+          let ratingControls = "";
+          if (isAuth) {
+            ratingControls = `
+              <div class="rating-row">
+                <button
+                  type="button"
+                  class="answer-mark-btn"
+                  data-url="{% url 'questions:answer_mark' 0 %}".replace("/0/", "/" + answer.id + "/")
+                  data-mark="1"
+                  title="Нравится"
+                >
+                  <img class="mark-icon" src="{% static 'icons/like.svg' %}" alt="Like">
+                </button>
+
+                <input class="rating-input answer-rating-input" type="number" value="${answer.rating || 0}" disabled>
+
+                <button
+                  type="button"
+                  class="answer-mark-btn"
+                  data-url="{% url 'questions:answer_mark' 0 %}".replace("/0/", "/" + answer.id + "/")
+                  data-mark="-1"
+                  title="Не нравится"
+                >
+                  <img class="mark-icon" src="{% static 'icons/dislike.svg' %}" alt="Dislike">
+                </button>
+              </div>
+            `;
+          } else {
+            ratingControls = `<input class="rating-input answer-rating-input" type="number" value="${answer.rating || 0}" disabled>`;
+          }
+
+          // correct checkbox — строго как у тебя
+          const correctUrl = "{% url 'questions:answer_correct' question.id %}";
+          const correctInput = isOwner
+            ? `
+              <input
+                class="answer-correct-checkbox"
+                id="correct-${answer.id}"
+                type="checkbox"
+                ${answer.is_correct ? "checked" : ""}
+                data-url="${correctUrl}"
+                data-answer-id="${answer.id}"
+              >
+            `
+            : `
+              <input
+                id="correct-${answer.id}"
+                type="checkbox"
+                ${answer.is_correct ? "checked" : ""}
+                disabled
+              >
+            `;
+
+          return `
+            <div class="answer-card" id="answer-${answer.id}">
+              <div class="div-column div-column--aside">
+                <img class="question-avatar" src="${avatar}" alt="" />
+                ${ratingControls}
+              </div>
+
+              <div class="div-column div-column--main">
+                <p>${safeText}</p>
+                <p>
+                  ${correctInput}
+                  <label for="correct-${answer.id}">Правильно</label>
+                </p>
+              </div>
+            </div>
+          `;
+        }
+
+        if (typeof Centrifuge === "undefined") {
+          console.warn("Centrifuge JS is not loaded");
+          return;
+        }
+
+        const centrifuge = new Centrifuge(wsUrl, {
+          getToken: async () => {
+            const r = await fetch(tokenUrl, { credentials: "same-origin" });
+            if (!r.ok) throw new Error("Token request failed");
+            const data = await r.json();
+            return data.token;
+          }
+        });
+
+        const sub = centrifuge.newSubscription(channel);
+
+        sub.on("publication", function (ctx) {
+          const data = ctx.data || {};
+          if (data.type !== "answer_created") return;
+
+          const payload = data.payload || {};
+          const answer = payload.answer;
+          if (!answer || !answer.id) return;
+
+          const container = document.getElementById("answers-container");
+          if (!container) return;
+
+          // не вставляем повторно
+          if (document.getElementById("answer-" + answer.id)) return;
+
+          // убрать пустую надпись, если была
+          const empty = document.getElementById("answers-empty");
+          if (empty) empty.remove();
+
+          container.insertAdjacentHTML("beforeend", renderAnswerCard(payload));
+        });
+
+        sub.subscribe();
+        centrifuge.connect();
+      })();
+    </script>
+  {% endif %}
 
 {% endblock %}

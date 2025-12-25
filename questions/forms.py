@@ -29,7 +29,8 @@ class QuestionForm(forms.ModelForm):
         if not raw:
             return []
 
-        parts = raw.replace(",", ";", ".").split()
+        raw = raw.replace(",", " ").replace(";", " ").replace(".", " ")
+        parts = raw.split()
         parts = [p.strip() for p in parts if p.strip()]
 
         result = []

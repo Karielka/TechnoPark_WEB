@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.views import View
 from django.views.generic import ListView, DetailView, CreateView, UpdateView, DeleteView
 from django.shortcuts import get_object_or_404
@@ -17,6 +18,8 @@ from .models import Question, Answer, Tag, QuestionMark, AnswerMark
 from .forms import QuestionForm, AnswerForm
 from .caches import LatestQuestionsCache, PopularTagsCache, BestMembersCache
 
+from centrifuge_client.channels import QuestionChannel
+from centrifuge_client.utils import centrifugo_ws_url
 
 class SidebarCacheMixin:
     """
@@ -97,6 +100,10 @@ class QuestionDetailView(SidebarCacheMixin, TemplateView):
             "question": question, 
             "answers": answers,
             "answer_form": AnswerForm(),
+
+            "centrifuge_enabled": getattr(settings, "CENTRIFUGE_ENABLED", False),
+            "centrifuge_ws_url": centrifugo_ws_url(),
+            "centrifuge_channel": QuestionChannel.make(question.id),
         })
         return ctx
 
@@ -141,6 +148,40 @@ class AnswerCreateView(View):
             answer.question = question
             answer.save()
             answer.question.add_answer()
+
+            # Публикуем событие всем подписчикам страницы вопроса
+            if getattr(settings, "CENTRIFUGE_ENABLED", False):
+                ch = QuestionChannel()
+                channel = QuestionChannel.make(question.id)
+
+                user_profile = getattr(answer.user, "profile", None)
+                avatar_url = ""
+                if user_profile and hasattr(user_profile, "avatar_url"):
+                    avatar_url = user_profile.avatar_url
+
+                ch.publish(
+                    channel=channel,
+                    msg_type="answer_created",
+                    data={
+                        "answer": {
+                            "id": answer.id,
+                            "text": answer.text,
+                            "rating": answer.rating or 0,
+                            "is_correct": bool(answer.is_correct),
+                            "created_at": answer.created_at.isoformat(),
+                            "user": {
+                                "id": answer.user_id,
+                                "username": answer.user.username,
+                                "avatar_url": avatar_url,
+                            },
+                        },
+                        "question": {
+                            "id": question.id,
+                            "user_id": question.user_id,
+                        },
+                    },
+                )
+
             self._notify_question_author(question=question, answer=answer, request=request)
             return redirect("questions:question_detail", pk=question.id)
 
