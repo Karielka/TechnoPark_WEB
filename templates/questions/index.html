@@ -49,6 +49,17 @@
 
 
         <div class="div-column div-column--main">
+          {% if q.cover %}
+            <p>
+              <a href="{% url 'questions:question_detail' q.id %}">
+                <img
+                  src="{{ q.cover.url }}"
+                  alt="Обложка"
+                  style="max-width: 240px; height: auto; border-radius: 8px;"
+                />
+              </a>
+            </p>
+          {% endif %}
           <p><a href="{% url 'questions:question_detail' q.id %}">{{ q.topic }}</a></p>
           <p>{{ q.text }}</p>
           <p>

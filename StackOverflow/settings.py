@@ -46,6 +46,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'users',
     'questions',
+    'centrifuge'
 ]
 
 MIDDLEWARE = [
@@ -151,6 +152,40 @@ WHITENOISE_USE_FINDERS = True
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CACHES = {
+    "default": {
+        "BACKEND": "django_redis.cache.RedisCache",
+        "LOCATION": ["redis://localhost:6379/1",],
+        "TIMEOUT": config.getint('redis', 'LIFETIME', fallback=9660),
+        "OPTIONS": {
+            "CLIENT_CLASS": "django_redis.client.DefaultClient",
+        },
+        "KEY_PREFIX": config.get('redis', 'PREFIX', fallback="StackOverflow"),
+    }
+}
+
+
+# Centrifugo
+
+CENTRIFUGE_HOST = config.get('centrifuge', 'HOST', fallback='http://localhost:8035')
+CENTRIFUGE_URL = config.get('centrifuge', 'URL', fallback='')
+CENTRIFUGE_API_KEY = config.get('centrifuge', 'API_KEY', fallback='')
+CENTRIFUGE_SECRET = config.get('centrifuge', 'SECRET', fallback='')
+CENTRIFUGE_TOKEN_EXPIRE = config.getint('centrifuge', 'TOKEN_EXPIRE', fallback=120 * 60)
+CENTRIFUGE_TIMEOUT = config.getint('centrifuge', 'TIMEOUT', fallback=1)
+CENTRIFUGE_ENABLED = config.getboolean('centrifuge', 'ENABLED', fallback=False)
+
+# Mailing
+
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = config.get('smtp', 'HOST', fallback='127.0.0.1')
+EMAIL_PORT = config.getint('smtp', 'PORT', fallback=1025)
+SENDER_EMAIL = config.get('smtp', 'SENDER_EMAIL')
+SERVER_EMAIL = SENDER_EMAIL
+UNSUBSCRIBE_TOKEN = config.get('smtp', 'UNSUBSCRIBE_TOKEN', fallback='!SECRET_TOKEN!')
+USE_TLS = False
+
 
 try:
     from .local_settings import *

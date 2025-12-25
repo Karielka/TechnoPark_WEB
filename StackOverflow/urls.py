@@ -9,6 +9,7 @@ urlpatterns = [
     path("", HomeView.as_view(), name="home"),
     path("questions/", include("questions.urls", namespace="questions")),
     path("", include("users.urls", namespace="users")),
+    path("centrifugo/", include("centrifuge_client.urls", namespace="centrifuge_client")),
 ]
 
 if settings.DEBUG:

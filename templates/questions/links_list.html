@@ -1,43 +1,50 @@
-{% load static %}
+{# templates/questions/links_list.html #}
 
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="utf-8">
-  <title>{% block title %}StackOverflow{% endblock %}</title>
-  <link rel="stylesheet" href="{% static 'css/style.css' %}">
-  {% block extra_head %}{% endblock %}
-</head>
+<div class="aside-block">
 
-<body>
+  <div class="aside-card">
+    <p class="info-header title">Популярные тэги</p>
 
-  <main class="container">
-    <p class="info-header title">Popular tags</p>
-    <p>
-      <span>perl</span>
-      <span class="red-text">python</span>
-      <span>Technopark</span>
-      <span>ruby</span>
-      <span class="green-text">RubyOnRails</span>
-      <span>Extrem</span>
-      <span class="red-text">Coding</span>
-      <span>LifeStyle</span>
-      <span>NDS</span>
-      <span class="purple-text">Golang</span>
-      <span>Protobuf</span>
-    </p>
+    <div class="tags-cloud">
+      {% for t in sidebar_popular_tags %}
+        <a class="tag-chip tag-chip--{{ forloop.counter|add:0|divisibleby:2|yesno:"a,b" }}"
+           href="{% url 'questions:tag' t.title %}">
+          {{ t.title }}
+        </a>
+      {% empty %}
+        <span class="muted">Нет данных (кэш пуст)</span>
+      {% endfor %}
+    </div>
+  </div>
 
-    <p class="info-header">Best Members</p>
-    <ul>
-      <li><a>Daniil Mironenko</a></li>
-      <li><a>Malkov Oleg</a></li>
-      <li><a>Tim Tim</a></li>
-      <li><a>Archipov Artem</a></li>
+  <div class="aside-card">
+    <p class="info-header">Лучшие пользователи</p>
+    <ul class="aside-list">
+      {% for u in sidebar_best_members %}
+        <li class="aside-list__item">
+          <span class="aside-list__name">{{ u.username }}</span>
+          <span class="aside-list__meta">{{ u.score }}</span>
+        </li>
+      {% empty %}
+        <li class="muted">Нет данных (кэш пуст)</li>
+      {% endfor %}
     </ul>
+  </div>
 
-  </main>
+  <div class="aside-card">
+    <p class="info-header">Последние вопросы</p>
+    <ul class="aside-list">
+      {% for q in sidebar_latest_questions %}
+        <li class="aside-list__item">
+          <a class="aside-link"
+             href="{% url 'questions:question_detail' pk=q.id %}">
+            {{ q.topic|truncatechars:48 }}
+          </a>
+        </li>
+      {% empty %}
+        <li class="muted">Нет данных (кэш пуст)</li>
+      {% endfor %}
+    </ul>
+  </div>
 
-  {% block extra_js %}{% endblock %}
-  
-</body>
-</html>
+</div>

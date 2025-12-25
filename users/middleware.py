@@ -12,6 +12,7 @@ EXEMPT_PATH_PREFIXES = (
     "/admin/",
     "/admin/login/",
     "/signup/",
+    "/centrifugo/",
 )
 
 class LoginRequiredMiddleware:

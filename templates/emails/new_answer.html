@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="ru">
+  <body>
+    <p>Здравствуйте{% if author.username %}, {{ author.username }}{% endif %}.</p>
+
+    <p>На ваш вопрос появился новый ответ:</p>
+
+    <p><b>{{ question.topic }}</b></p>
+
+    <p style="white-space: pre-wrap;">{{ answer.text }}</p>
+
+    <p>
+      Открыть вопрос:
+      <a href="{{ question_url }}">{{ question_url }}</a>
+    </p>
+
+    <hr>
+
+    <p style="font-size: 12px; opacity: 0.7;">
+      Это письмо отправлено автоматически.
+    </p>
+  </body>
+</html>
